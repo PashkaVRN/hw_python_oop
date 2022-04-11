@@ -1,4 +1,5 @@
 from dataclasses import dataclass, asdict
+from typing import Dict, Type
 
 
 @dataclass
@@ -118,13 +119,13 @@ class Swimming(Training):
 
 def read_package(workout_type: str, data: list) -> Training:
     """Прочитать данные полученные от датчиков."""
-    trainings: dict[str, Training] = {
+    trainings: Dict[str, Type[Training]] = {
         'SWM': Swimming,
         'RUN': Running,
         'WLK': SportsWalking
     }
     if workout_type not in trainings:
-        raise ValueError('You trainings is not defined.')
+        raise KeyError(f'Тип тренировки не известен {workout_type}')
     return trainings[workout_type](*data)
 
 
