@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 
 @dataclass
@@ -11,12 +11,14 @@ class InfoMessage:
     speed: float
     calories: float
 
+    INFORMATION = ('Тип тренировки: {training_type}; '
+                   'Длительность: {duration:.3f} ч.; '
+                   'Дистанция: {distance:.3f} км; '
+                   'Ср. скорость: {speed:.3f} км/ч; '
+                   'Потрачено ккал: {calories:.3f}.')
+
     def get_message(self) -> str:
-        return (f'Тип тренировки: {self.training_type}; '
-                f'Длительность: {self.duration:.3f} ч.; '
-                f'Дистанция: {self.distance:.3f} км; '
-                f'Ср. скорость: {self.speed:.3f} км/ч; '
-                f'Потрачено ккал: {self.calories:.3f}.')
+        return (self.INFORMATION.format(**asdict(self)))
 
 
 class Training:
@@ -73,7 +75,7 @@ class SportsWalking(Training):
 
     COEFF_WEIGHT = 0.035
     COEFF_WEIGHT_1 = 0.029
-    COEFF_WEIGHT_2 = 2
+    EXHIBITOR = 2
 
     def __init__(self, action: int,
                  duration: float,
@@ -84,7 +86,7 @@ class SportsWalking(Training):
 
     def get_spent_calories(self) -> float:
         return ((self.COEFF_WEIGHT * self.weight + (self.get_mean_speed()
-                ** self.COEFF_WEIGHT_2 // self.height) * self.COEFF_WEIGHT_1
+                ** self.EXHIBITOR // self.height) * self.COEFF_WEIGHT_1
                 * self.weight) * self.duration * self.MIN_IN_H)
 
 
@@ -93,7 +95,7 @@ class Swimming(Training):
 
     LEN_STEP = 1.38
     COEFF_MID_SPEED = 1.1
-    COEFF_MID_SPEED_1 = 2
+    COEFF_WEIGHT = 2
 
     def __init__(self,
                  action: int,
@@ -107,7 +109,7 @@ class Swimming(Training):
 
     def get_spent_calories(self) -> float:
         return ((self.get_mean_speed() + self.COEFF_MID_SPEED)
-                * self.COEFF_MID_SPEED_1 * self.weight)
+                * self.COEFF_WEIGHT * self.weight)
 
     def get_mean_speed(self) -> float:
         return (self.length_pool * self.count_pool
@@ -116,12 +118,14 @@ class Swimming(Training):
 
 def read_package(workout_type: str, data: list) -> Training:
     """Прочитать данные полученные от датчиков."""
-    t_workout = {
+    trainings: dict[str, Training] = {
         'SWM': Swimming,
         'RUN': Running,
         'WLK': SportsWalking
     }
-    return t_workout[workout_type](*data)
+    if workout_type not in trainings:
+        raise ValueError('You trainings is not defined.')
+    return trainings[workout_type](*data)
 
 
 def main(training: Training) -> None:
